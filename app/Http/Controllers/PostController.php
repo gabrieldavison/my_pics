@@ -7,6 +7,7 @@ use App\Models\Post;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
@@ -37,24 +38,47 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+    private function getFolderLocation(Int $id)
+    {
+        $parent_id = $id;
+        $folder_string = '';
+        while ($parent_id !== 1) {
+            $parent = Post::where('id', '=', $parent_id)->first();
+            error_log($parent['parent_id']);
+
+            // This enters an infinite loop
+            $parent_directory = $parent['filename'] . '/';
+            $folder_string = $parent_directory . $folder_string;
+            // dd($parent_directory, $folder_string);
+            $parent_id = $parent['parent_id'];
+        }
+        return 'root/' . $folder_string;
+    }
+
     public function store(Request $request)
     {
         $file = $request->file('file');
         $extension = '.' . $file->extension();
         $uuid = Str::uuid();
         $time = Carbon::now()->toDateTimeLocalString();
-        $filename = $time . "_" . $uuid . $extension;
-        // check for folder with parents name
-        // if not exists then create
-        // if exists then save there
-        Storage::disk('public')->put($filename, file_get_contents($file));
+        $filename = $time . "_" . $uuid;
+        // check if has parent
+        $folder = $this->getFolderLocation($request->parent_id);
+        $location = $folder . '/' . $filename . $extension;
+        // set foldername to parent
+        // else set foldername to filename
+        // create location and save there
 
 
-        $request_data = $request->all();
-        $request_data['file'] = Storage::url($filename);
-        // Filename gets stored in database here
-        // TODO Add filename as db field
-        Post::create($request_data);
+        Storage::disk('public')->put($location, file_get_contents($file));
+
+
+        $p = new Post($request->all());
+        $p->file = Storage::url($location);
+        $p->filename = $filename;
+        $p->save();
+
         return redirect("/posts/" . $request->parent_id);
     }
 

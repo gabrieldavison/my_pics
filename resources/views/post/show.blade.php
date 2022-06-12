@@ -1,9 +1,9 @@
 <x-app-layout>
     <div class="flex md:flex-row flex-col">
-        <div class="md:mr-10 mr-0">
+        <div class="md:mr-10 mr-0 text-center">
             <img src="{{asset($post->file)}}" class="w-96">
             @auth
-            <a href="/new/{{$post->id}}" class="text-2xl">+</a>
+            <a href="/new/{{$post->id}}" class="text-xl">add child</a>
             @endauth
         </div>
         <div>
@@ -11,11 +11,8 @@
                 @unless ($child->id === 1)
                 <div>
                     <a href="/posts/{{$child->id}}"><img src="{{asset($child->file)}}" class="w-96"></a>
-                    @auth
-                        <a href="/new/{{$child->id}}" class="text-2xl">+</a>
-                    @endauth
-                @endunless
                 <div>
+                @endunless
             @endforeach
         </div>
     </div>

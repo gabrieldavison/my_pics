@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamps();
             $table->integer('parent_id')->unsigned();
             $table->string('file');
+            $table->string('filename');
         });
     }
 
